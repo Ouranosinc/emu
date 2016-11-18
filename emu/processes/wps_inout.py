@@ -1,12 +1,15 @@
-from datetime import datetime, date
-import types
-
-from pywps.Process import WPSProcess
+from pywps import Process
+from pywps import LiteralInput, LiteralOutput
+from pywps import BoundingBoxInput, BoundingBoxOutput
+from pywps import ComplexInput, ComplexOutput
+from pywps import Format, FORMATS
+from pywps.app.Common import Metadata
 
 import logging
-logger = logging.getLogger()
+LOGGER = logging.getLogger("PYWPS")
 
-class InOutProcess(WPSProcess):
+
+class InOut(Process):
     """
     This process defines several types of literal type of in- and outputs.
 
@@ -14,295 +17,128 @@ class InOutProcess(WPSProcess):
     """
 
     def __init__(self):
-        # definition of this process
-        WPSProcess.__init__(
-            self, 
+        inputs = [
+            LiteralInput('string', 'String', data_type='string',
+                         abstract='Enter a simple string.',
+                         default="This is just a string"),
+            LiteralInput('int', 'Integer', data_type='integer',
+                         abstract='Enter an integer number.',
+                         default="7"),
+            LiteralInput('float', 'Float', data_type='float',
+                         abstract='Enter a float number.',
+                         default="3.14"),
+            # TODO: boolean default is not displayed in phoenix
+            LiteralInput('boolean', 'Boolean', data_type='boolean',
+                         abstract='Make your choice :)',
+                         default='1'),
+            LiteralInput('time', 'Time', data_type='time',
+                         abstract='Enter a time like 12:00:00',
+                         default='12:00:00'),
+            LiteralInput('date', 'Date', data_type='date',
+                         abstract='Enter a date like 2012-05-01',
+                         default='2012-05-01'),
+            LiteralInput('datetime', 'Datetime', data_type='dateTime',
+                         abstract='Enter a datetime like 2016-09-02T12:00:00Z',
+                         default='2016-09-02T12:00:00Z'),
+            LiteralInput('string_choice', 'String Choice', data_type='string',
+                         abstract='Choose one item form list.',
+                         allowed_values=['rock', 'paper', 'scissor'],
+                         default='scissor'),
+            LiteralInput('string_multiple_choice', 'String Multiple Choice',
+                         abstract='Choose one or two items from list.',
+                         metadata=[Metadata('Info')],
+                         data_type='string',
+                         allowed_values=['sitting duck', 'flying goose',
+                                         'happy pinguin', 'gentle albatros'],
+                         min_occurs=0, max_occurs=2,
+                         default='gentle albatros'),
+            # BoundingBoxInput('bbox', 'Bounding Box', ['epsg:4326', 'epsg:3035']),
+            # abstract='Bounding Box with\
+            #        EPSG:4326 and EPSG:3035.',
+            #     crss=['epsg:4326', 'epsg:3035']),
+            ComplexInput('text', 'Text',
+                         abstract='Enter a URL pointing\
+                            to a text document (optional)',
+                         metadata=[Metadata('Info')],
+                         min_occurs=0,
+                         supported_formats=[Format('text/plain')]),
+            ComplexInput('nc', 'NetCDF',
+                         abstract='Enter a URL pointing\
+                            to a NetCDF file (optional)',
+                         metadata=[Metadata('Info')],
+                         min_occurs=0,
+                         supported_formats=[Format('application/x-netcdf')]),
+        ]
+        outputs = [
+            LiteralOutput('string', 'String', data_type='string'),
+            LiteralOutput('int', 'Integer', data_type='integer'),
+            LiteralOutput('float', 'Float', data_type='float'),
+            LiteralOutput('boolean', 'Boolean', data_type='boolean'),
+            LiteralOutput('time', 'Time', data_type='time'),
+            LiteralOutput('date', 'Date', data_type='date'),
+            LiteralOutput('datetime', 'DateTime', data_type='dateTime'),
+            LiteralOutput('string_choice', 'String Choice',
+                          data_type='string'),
+            LiteralOutput('string_multiple_choice', 'String Multiple Choice',
+                          data_type='string'),
+            # BoundingBoxOutput('bbox', 'Boudning Box', ['epsg:4326']),
+            ComplexOutput('text', 'Text',
+                          abstract='Copy of input text file.',
+                          as_reference=True,
+                          supported_formats=[Format('text/plain')]),
+            ComplexOutput('nc', 'NetCDF',
+                          abstract='Copy of input netcdf file.',
+                          as_reference=True,
+                          supported_formats=[Format('application/x-netcdf'),
+                                             Format('text/plain')]),
+            BoundingBoxOutput('bbox', 'Bounding Box',
+                              crss=['epsg:4326']),
+        ]
+
+        super(InOut, self).__init__(
+            self._handler,
             identifier="inout",
-            title="Testing all Data Types",
-            version="0.5",
-            # TODO: what can i do with this?
+            title="In and Out",
+            version="1.0",
+            abstract="Testing all WPS input and output parameters.",
+            # profile=['birdhouse'],
             metadata=[
-                {"title":"Foobar","href":"http://foo/bar"},
-                {"title":"Barfoo","href":"http://bar/foo"},
-                ],
-            abstract="Just testing data types like date, datetime etc ...",
-            statusSupported=True,
-            storeSupported=True
-            )
+                Metadata('Birdhouse', 'http://bird-house.github.io/'),
+                Metadata('User Guide', 'http://emu.readthedocs.io/en/latest/')],
+            inputs=inputs,
+            outputs=outputs,
+            status_supported=True,
+            store_supported=True)
 
-        # Literal Input Data
-        # ------------------
-
-        # TODO: use also uom (unit=meter ...)
-        self.intIn = self.addLiteralInput(
-            identifier="int",
-            title="Integer",
-            abstract="This is an Integer",
-            default="10",
-            type=type(1),
-            minOccurs=0,
-            maxOccurs=1,
-            )
-
-        self.stringIn = self.addLiteralInput(
-            identifier="string",
-            title="String",
-            abstract="This is a String",
-            default="nothing important",
-            type=type(''),
-            minOccurs=0,
-            maxOccurs=1,
-            )
-
-        self.floatIn = self.addLiteralInput(
-            identifier="float",
-            title="Float",
-            abstract="This is a Float",
-            default="3.14",
-            type=type(0.1),
-            minOccurs=0,
-            maxOccurs=1,
-            )
-
-        self.booleanIn = self.addLiteralInput(
-            identifier="boolean",
-            title="Boolean",
-            abstract="This is a Boolean",
-            default=False,
-            type=type(False),
-            minOccurs=0,
-            maxOccurs=1,
-            )
-
-        self.dateIn = self.addLiteralInput(
-            identifier="date",
-            title="Date",
-            abstract="This is a Date: 2013-07-10",
-            default="2013-07-11",
-            type=type(date(2013,7,11)),
-            minOccurs=0,
-            maxOccurs=1,
-            )
-
-        self.stringChoiceIn = self.addLiteralInput(
-            identifier="stringChoice",
-            title="String Choice",
-            abstract="Choose a string",
-            default="one",
-            type=type(''),
-            minOccurs=0,
-            maxOccurs=3,
-            allowedValues=['one', 'two', 'three']
-            )
-
-        self.intRequiredIn = self.addLiteralInput(
-            identifier="intRequired",
-            title="Integer Required",
-            abstract="This is an required Integer",
-            #default="10",
-            type=type(1),
-            minOccurs=1, # required
-            maxOccurs=1,
-            )
-
-        self.stringMoreThenOneIn = self.addLiteralInput(
-            identifier="stringMoreThenOne",
-            title="More then One",
-            abstract="This is a more then one String (0-2)",
-            #default="one",
-            type=type(''),
-            minOccurs=0,
-            maxOccurs=2,
-            )
-
-
-        # complex input
-        # -------------
-
-        self.xml_url = self.addComplexInput(
-            identifier="xml_url",
-            title="XML File",
-            abstract="URL of XML File",
-            metadata=[],
-            minOccurs=0,
-            maxOccurs=2,
-            formats=[{"mimeType":"text/xml"}],
-            maxmegabites=2,
-            )
-
-        # zero or more bounding-boxes
-        # --------------------------
-
-        self.bboxIn = self.addBBoxInput(
-            identifier="bbox",
-            title="Bounding Box",
-            abstract="Enter a bounding box",
-            minOccurs=0,
-            maxOccurs=1,
-            crss=["EPSG:4326"],
-            )
-
-        self.dummyBBoxIn = self.addLiteralInput(
-            identifier="dummybbox",
-            title="Dummy BBox",
-            abstract="This is a BBox: (minx,miny,maxx,maxy)",
-            default="0,-90,180,90",
-            type=type(''),
-            minOccurs=1,
-            maxOccurs=1,
-            )
-
-        # Output data
-        # ===================================================
-
-        # Literal output
-        # --------------
-
-        # TODO: use also uom (unit=meter ...)
-        self.intOut = self.addLiteralOutput(
-            identifier="int",
-            title="Integer",
-            abstract="This is an Integer",
-            type=type(1),
-            )
-
-        self.stringOut = self.addLiteralOutput(
-            identifier="string",
-            title="String",
-            abstract="This is a String",
-            default=None,
-            type=type(''),
-            )
-
-        self.floatOut = self.addLiteralOutput(
-            identifier="float",
-            title="Float",
-            abstract="This is a Float",
-            type=type(0.1),
-            )
-
-        self.booleanOut = self.addLiteralOutput(
-            identifier="boolean",
-            title="Boolean",
-            abstract="This is a Boolean",
-            type=type(False),
-            )
-
-        self.dateOut = self.addLiteralOutput(
-            identifier="date",
-            title="Date",
-            abstract="This is a Date: 2013-07-10",
-            type=type(date(2013,7,11)),
-            )
-
-        self.stringChoiceOut = self.addLiteralOutput(
-            identifier="stringChoice",
-            title="String Choice",
-            abstract="Chosen string",
-            default="one",
-            type=type('')
-            )
-
-        self.intRequiredOut = self.addLiteralOutput(
-            identifier="intRequired",
-            title="Integer Required",
-            abstract="This is an required Integer",
-            type=type(1),
-            )
-
-        self.stringMoreThenOneOut = self.addLiteralOutput(
-            identifier="stringMoreThenOne",
-            title="More then One",
-            abstract="This is a more then one String (0-2)",
-            #default="one",
-            type=type(''),
-            )
-
-        # complex output
-        # -------------
-
-        self.xmlFileOut = self.addComplexOutput(
-            identifier="xmlfile",
-            title="XML File",
-            abstract="xml file",
-            metadata=[],
-            formats=[{"mimeType":"text/xml"}],
-            asReference=True,
-            )
-
-        self.xml_url_out = self.addComplexOutput(
-            identifier="xml_url",
-            title="XML File",
-            abstract="XML File given by URL",
-            metadata=[],
-            formats=[{"mimeType":"text/xml"}],
-            asReference=True,
-            )
-
-        # bounding-box
-        # --------------------------
-
-        self.bboxOut = self.addBBoxOutput(
-            identifier="bbox",
-            title="Bounding Box",
-            abstract="This is a bbox",
-            dimensions=2,
-            crs="EPSG:4326",
-            asReference=False,
-            )
-
-        self.dummyBBoxOut = self.addLiteralOutput(
-            identifier="dummybbox",
-            title="Dummy BBox",
-            abstract="This is a BBox: (minx,miny,maxx,maxy)",
-            type=type(''),
-            )
-       
-    def execute(self):
-        # literals
-        self.setOutputValue(
-            identifier='intOut', 
-            value=self.getInputValue(identifier='intIn'))
-
-        self.stringOut.setValue(self.stringIn.getValue())
-        self.floatOut.setValue(self.floatIn.getValue())
-        self.booleanOut.setValue(self.booleanIn.getValue())
-        self.dateOut.setValue(self.dateIn.getValue())
-        self.intRequiredOut.setValue(self.intRequiredIn.getValue())
-        self.stringChoiceOut.setValue(self.stringChoiceIn.getValue())
-
-        # more than one
-        values = self.getInputValues(identifier='stringMoreThenOne')
-        self.stringMoreThenOneOut.setValue( ','.join(values) )
-
-        # TODO: bbox output is not working as expected in pywps
-        bbox = self.bboxIn.getValue()
-        if bbox is not None:
-            self.status.set("bbox={0}".format(bbox.coords), 90)
-            self.bboxOut.setValue(bbox.coords)
+    def _handler(self, request, response):
+        response.outputs['string'].data = request.inputs['string'][0].data
+        response.outputs['int'].data = request.inputs['int'][0].data
+        response.outputs['float'].data = request.inputs['float'][0].data
+        response.outputs['boolean'].data = request.inputs['boolean'][0].data
+        response.outputs['time'].data = request.inputs['time'][0].data
+        response.outputs['date'].data = request.inputs['date'][0].data
+        response.outputs['datetime'].data = request.inputs['datetime'][0].data
+        response.outputs['string_choice'].data = \
+            request.inputs['string_choice'][0].data
+        if 'string_multiple_choice' in request.inputs:
+            response.outputs['string_multiple_choice'].data = ', '.join(
+                [inpt.data for inpt in request.inputs['string_multiple_choice']])
         else:
-            self.bboxOut.setValue([[0,-90],[180,90]])
-        self.dummyBBoxOut.setValue(self.dummyBBoxIn.getValue())
+            response.outputs['string_multiple_choice'].data = 'no value'
+        # TODO: bbox is not working
+        # response.outputs['bbox'].data = request.inputs['bbox'][0].data
+        # TODO: how to copy file?
+        response.outputs['text'].output_format = FORMATS.TEXT
+        if 'text' in request.inputs:
+            response.outputs['text'].file = request.inputs['text'][0].file
+        else:
+            response.outputs['text'].data = "request didn't have a text file."
 
-        # complex
-        # write my own
-        xml_filename = 'out.xml'
-        with open(xml_filename, 'w') as fp:
-            fp.write('<xml>just testing</xml>')
-            fp.close()
-            self.xmlFileOut.setValue( fp.name )
-
-        # write file with url from input data
-        xml_filename = 'out2.xml'
-        with open(xml_filename, 'w') as fp:
-            xml_url = self.xml_url.getValue()
-            if xml_url is not None:
-                for xml in xml_url:
-                    with open(xml, 'r') as fp2:
-                        fp.write( fp2.read() )
-            else:
-                fp.write( "<result>nothing</result>" )
-            self.xml_url_out.setValue( fp.name )
-
-        self.status.set("Done", 100)
-        
+        if 'nc' in request.inputs:
+            response.outputs['nc'].output_format = FORMATS.NETCDF
+            response.outputs['nc'].file = request.inputs['nc'][0].file
+        else:
+            response.outputs['nc'].output_format = FORMATS.TEXT
+            response.outputs['nc'].data = "request didn't have a netcdf file."
+        response.outputs['bbox'].data = [0, 0, 10, 10]
+        return response

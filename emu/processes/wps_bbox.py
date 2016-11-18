@@ -1,50 +1,40 @@
-from pywps.Process import WPSProcess
+import os
+import tempfile
+from pywps.app.Common import Metadata
 
-import logging
-logger = logging.getLogger()
+__author__ = 'Jachym'
 
-class BBoxProcess(WPSProcess):
-    """
-    This process has a boundingbox input and output parameter.
-    """
+from pywps import Process, BoundingBoxInput, BoundingBoxOutput
 
+
+class Box(Process):
     def __init__(self):
-        WPSProcess.__init__(
-            self, 
-            identifier="bbox",
-            title="Bounding Box",
-            version="0.1",
+        inputs = [
+            # BoundingBoxInput('bboxin', 'box in',
+            #                 crss=['epsg:4326', 'epsg:3035'],
+            #                 min_occurs=0)
+        ]
+        outputs = [
+            BoundingBoxOutput('bboxout', 'box out',
+                              abstract='Bounding Box Output',
+                              crss=['epsg:4326'])
+        ]
+
+        super(Box, self).__init__(
+            self._handler,
+            identifier='bbox',
+            version='0.1',
+            title="Bounding box in- and out",
+            abstract='Give bounding box, return the same',
             metadata=[
-                {"title":"home","href":"http://emu.readthedocs.org/en/latest/index.html"},
-                ],
-            abstract="Testing BoundingBox Input/Output Parameter",
-            statusSupported=True,
-            storeSupported=True
-            )
+                Metadata('Birdhouse', 'http://bird-house.github.io/'),
+                Metadata('User Guide', 'http://emu.readthedocs.io/en/latest/')],
+            inputs=inputs,
+            outputs=outputs,
+            store_supported=True,
+            status_supported=True
+        )
 
-        self.bboxIn = self.addBBoxInput(
-            identifier="bbox",
-            title="Bounding Box",
-            minOccurs=1,
-            maxOccurs=1,
-            crss=["EPSG:4326", "EPSG:3035"],
-            )
-
-        self.bboxOut = self.addBBoxOutput(
-            identifier="bbox",
-            title="Bounding Box",
-            dimensions=2,
-            crs="EPSG:4326",
-            asReference=False,
-            )
-
-       
-    def execute(self):
-        # TODO: bbox output is not working as expected in pywps
-        bbox = self.bboxIn.getValue()
-        if bbox is not None:
-            self.status.set("bbox={0}".format(bbox.coords), 90)
-        self.bboxOut.setValue(bbox.coords)
-
-        self.status.set("Done", 100)
-        
+    def _handler(self, request, response):
+        response.outputs['bboxout'].data = [0, 0, 10, 10]
+        return response
