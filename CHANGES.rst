@@ -1,6 +1,20 @@
 Changes
 *******
 
+0.5.0 (2016-10-21)
+==================
+
+* using pywps-4.
+* updated all processes to pywps-4.
+* updated Dockerfile.
+* using docker-compose with environment from .env.
+
+0.4.1 (2016-10-20)
+==================
+
+* fixed docs and comments.
+* updated recipes, using conda-offline.
+
 0.4.0 (2016-07-11)
 ==================
 
