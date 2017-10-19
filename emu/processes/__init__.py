@@ -6,6 +6,8 @@ from .wps_dummy import Dummy
 from .wps_wordcounter import WordCounter
 from .wps_chomsky import Chomsky
 from .wps_inout import InOut
+from .wps_docker_app import DockerApp
+from .wps_hello_docker import HelloDocker
 
 processes = [
     UltimateQuestion(),
@@ -16,4 +18,6 @@ processes = [
     WordCounter(),
     Chomsky(),
     InOut(),
+    DockerApp(),
+    HelloDocker(),
 ]
