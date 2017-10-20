@@ -8,6 +8,9 @@ from .wps_chomsky import Chomsky
 from .wps_inout import InOut
 from .wps_docker_app import DockerApp
 from .wps_hello_docker import HelloDocker
+from .wps_generate_dem_processing import GenerateDemProcessing
+from .wps_snap_cp_tc_processing import SnapCpTcProcessing
+from .wps_snap_general_processing import SnapGeneralProcessing
 
 processes = [
     UltimateQuestion(),
@@ -20,4 +23,7 @@ processes = [
     InOut(),
     DockerApp(),
     HelloDocker(),
+    GenerateDemProcessing(),
+    SnapCpTcProcessing(),
+    SnapGeneralProcessing(),
 ]

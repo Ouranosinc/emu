@@ -42,5 +42,6 @@ EXPOSE 9001 $HTTP_PORT $HTTPS_PORT $OUTPUT_PORT
 # Start supervisor in foreground
 ENV DAEMON_OPTS --nodaemon
 
+RUN mkdir -p /opt/birdhouse/var/tmp/nginx/client
 # Start service ...
 CMD ["make", "update-config", "start"]
